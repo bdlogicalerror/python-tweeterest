@@ -22,13 +22,13 @@ def tweetsAction():
     if xApiToken().checkHasToken():
         if request.method == "GET":
             data = request.json
-            if "userId" in data:
+            if data is not None and "userId" in data:
                 userID = data.get("userId")
                 cursor.execute("SELECT EXISTS(SELECT * FROM user WHERE id=?)", [userID])
                 checkUser = cursor.fetchone()[0]
                 if checkUser == 1:
-                    cursor.execute("SELECT t.id, user_id, username, content, created_at, u.imageurl, t.imageurl FROM tweet t \
-                                                    INNER JOIN user u ON t.user_id = u.id")
+                    cursor.execute("SELECT t.id as tweetId, user_id as userId, username, content, created_at, u.imageurl, t.imageurl FROM tweet t \
+                                                    INNER JOIN user u ON t.user_id = u.id where t.user_id=?",[userID])
                     row_headers = [x[0] for x in cursor.description]
                     rv = cursor.fetchall()
                     json_data = []
@@ -40,9 +40,14 @@ def tweetsAction():
                         'message': "User not found"
                     }), 404
             else:
-                return jsonify({
-                    'message': "Invalid Request"
-                }), 400
+                cursor.execute("SELECT t.id as tweetId, user_id as userId, username, content, created_at, u.imageurl, t.imageurl FROM tweet t \
+                                                                   INNER JOIN user u ON t.user_id = u.id")
+                row_headers = [x[0] for x in cursor.description]
+                rv = cursor.fetchall()
+                json_data = []
+                for result in rv:
+                    json_data.append(dict(zip(row_headers, result)))
+                return jsonify(json_data), 200
         elif request.method == "POST":
             data = request.json
 

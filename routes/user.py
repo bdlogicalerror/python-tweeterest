@@ -41,8 +41,8 @@ def api_users():
         if request.method == 'GET':
             rq = request.args
             print(rq)
-            if len(rq.keys()) == 0:
-                cursor.execute("select * from user")
+            if "userId" not in rq:
+                cursor.execute("select id as userId,email,username,imageUrl,bannerUrl from user")
 
                 # serialize results into JSON
                 row_headers = [x[0] for x in cursor.description]
@@ -52,13 +52,13 @@ def api_users():
                     json_data.append(dict(zip(row_headers, result)))
 
                 res = json_data
-            elif len(rq.keys()) == 1:
+            elif "userId" in rq:
                 print('here')
                 if rq.get('userId').isdigit():
                     cursor.execute("SELECT EXISTS(SELECT * FROM user WHERE id=?)", [rq.get('userId')])
                     check_id_valid = cursor.fetchone()[0]
                     if check_id_valid == 1:
-                        cursor.execute(f"select * from user where id='{rq.get('userId')}'")
+                        cursor.execute(f"select id as userId,email,username,imageUrl,bannerUrl from user where id='{rq.get('userId')}'")
 
                         # serialize results into JSON
                         row_headers = [x[0] for x in cursor.description]
@@ -222,7 +222,8 @@ def api_users():
                         conn.commit()
 
                     cursor.execute(
-                        "SELECT id as userId, email, username, bio, birthdate, imageUrl, bannerUrl FROM user  WHERE id=?",
+                        "SELECT id as userId, email, username, bio, birthdate, imageUrl, bannerUrl FROM user  WHERE "
+                        "id=?",
                         [currentUserId])
                     updated = cursor.fetchall()
                     json_data = []
@@ -293,6 +294,7 @@ def api_users():
                 })
     else:
         return Response("X-Api-Key not found", mimetype='application/json', status=400)
+
 
 # return user data structure
 def use_data(data):

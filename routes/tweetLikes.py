@@ -20,9 +20,9 @@ def tweetLikesAction():
     cursor = conn.cursor()
     if xApiToken().checkHasToken():
         if request.method == 'GET':
-            data = request.json
+            data = request.args
 
-            if len(data.keys()) == 1 and "tweetId" in data:
+            if "tweetId" in data:
                 cursor.execute("SELECT EXISTS(SELECT id from tweet WHERE id=?)", [data['tweetId']])
                 checkTweet = cursor.fetchone()[0]
 

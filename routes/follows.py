@@ -20,14 +20,16 @@ def followAction():
     cursor = conn.cursor()
     if xApiToken().checkHasToken():
         if request.method == 'GET':
-            data = request.json
+            data = request.args
+            print(data['userId'])
+
             if "userId" in data:
                 cursor.execute("SELECT EXISTS(SELECT * FROM user WHERE id=?)", [data['userId']])
                 checkUser = cursor.fetchone()[0]
 
                 # handles bool response
                 if checkUser == 1:
-                    cursor.execute("SELECT id, email, username, bio, birthdate, imageurl, bannerurl \
+                    cursor.execute("SELECT id as userId, email, username, bio, birthdate, imageurl, bannerurl \
                                                             FROM user u INNER JOIN follow f ON u.id = f.followed WHERE f.follower=?",
                                    [data['userId']])
 
